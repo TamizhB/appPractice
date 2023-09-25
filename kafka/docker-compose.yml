@@ -1,0 +1,26 @@
+version: '3'
+services:
+  kafka:
+    image: bitnami/kafka:3
+    container_name: kafka
+    ports:
+      - "9092:9092"
+    environment:
+      - KAFKA_CFG_ZOOKEEPER_CONNECT=zookeeper:2181
+      - KAFKA_CFG_ADVERTISED_LISTENERS=PLAINTEXT://kafka:9092
+      - ALLOW_PLAINTEXT_LISTENER=yes
+      - KAFKA_AUTO_CREATE_TOPICS_ENABLE=true
+      - KAFKA_DELETE_TOPIC_ENABLE=true
+    volumes:
+      - /home/dell/Documents/appPractice/kafka/data:/bitnami/kafka/data
+      #- /home/dell/Documents/appPractice/kafka/logs:/var/lib/kafka/data
+    depends_on:
+      - zookeeper
+    user: root:root
+  zookeeper:
+    image: bitnami/zookeeper:3
+    container_name: zookeeper
+    ports:
+      - "2181:2181"
+    environment:
+      - ALLOW_ANONYMOUS_LOGIN=yes
