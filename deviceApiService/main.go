@@ -33,7 +33,7 @@ func main() {
 	base.GET("/all", deviceApis.ListDevices)
 	base.GET("/:device_name", deviceApis.GetDeviceConfig)
 	base.DELETE("/:device_name", deviceApis.RemoveDevice)
-	base.DELETE("/add", deviceApis.AddDevice)
+	base.POST("/add", deviceApis.AddDevice)
 
 	config := base.Group("configProfile")
 

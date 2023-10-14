@@ -7,6 +7,6 @@ type Device struct {
 	ID             string `gorm:"primary_key"`
 	Address        string
 	Port           string
-	AppliedProfile DeviceConfigProfile
+	AppliedProfile DeviceConfigProfile `gorm:"foreignKey:ID"`
 	RecentConfig   string
 }

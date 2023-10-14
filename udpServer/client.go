@@ -4,7 +4,6 @@ import (
 	"encoding/binary"
 	"fmt"
 	"net"
-	"time"
 )
 
 func main() {
@@ -43,7 +42,7 @@ func main() {
 	responseBuf := make([]byte, 16)
 
 	// Set a deadline for waiting for a response
-	conn.SetReadDeadline(time.Now().Add(5 * time.Second))
+	//conn.SetReadDeadline(time.Now().Add(5 * time.Second))
 
 	// Read the response from the server
 	n, err := conn.Read(responseBuf)
@@ -63,4 +62,22 @@ func main() {
 	fmt.Printf("angle: %d\n", angle)
 	fmt.Printf("rotate: %v\n", rotate)
 	fmt.Printf("frequency: %s\n", frequency)
+
+	go func() {
+
+		buf := make([]byte, 1024)
+		for {
+			n, addr, err := conn.ReadFrom(buf)
+			if err != nil {
+				fmt.Printf("Error receiving notification: %v\n", err)
+				continue
+			}
+
+			notification := string(buf[:n])
+			fmt.Printf("Received notification from %s: %s\n", addr.String(), notification)
+		}
+	}()
+
+	// Keep the subscriber running
+	select {}
 }
