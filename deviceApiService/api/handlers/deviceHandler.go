@@ -1,19 +1,18 @@
 package handlers
 
 import (
-	"net/http"
-
 	"github.com/gin-gonic/gin"
+	"proj.com/apisvc/api/clients"
 )
 
 type DeviceHandler struct {
-	HTTPClient http.Client
+	DevClient clients.DeviceClient
 }
 
 // NewDeviceHandler returns an impl of a device handler
-func NewDeviceHandler(httpClient http.Client) DeviceHandler {
+func NewDeviceHandler(devClient clients.DeviceClient) DeviceHandler {
 	return DeviceHandler{
-		HTTPClient: httpClient,
+		DevClient: devClient,
 	}
 }
 

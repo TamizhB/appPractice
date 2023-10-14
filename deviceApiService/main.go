@@ -23,10 +23,19 @@ func main() {
 
 	router := gin.New()
 	base := router.Group("/api/v1/device")
-	config := base.Group("configProfile")
 
 	dbconn := db.GetDb(pgHost, pgPort, pgDB)
 	db.CreateProfileTable(dbconn)
+	db.CreateDeviceTable(dbconn)
+
+	deviceApiClient := clients.NewDeviceClientImpl(http.Client{}, dbconn)
+	deviceApis := handlers.NewDeviceHandler(deviceApiClient)
+	base.GET("/all", deviceApis.ListDevices)
+	base.GET("/:device_name", deviceApis.GetDeviceConfig)
+	base.DELETE("/:device_name", deviceApis.RemoveDevice)
+	base.DELETE("/add", deviceApis.AddDevice)
+
+	config := base.Group("configProfile")
 
 	configApiClient := clients.NewConfigurationsClientImpl(http.Client{}, dbconn)
 	configApis := handlers.NewConfigurationsHandler(configApiClient)
