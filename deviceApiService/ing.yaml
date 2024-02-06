@@ -1,0 +1,16 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: api-svc-ingress
+spec:
+  rules:
+  - host: device-svr # Replace with your actual hostname or '*'
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: api-svc-service
+            port:
+              number: 80

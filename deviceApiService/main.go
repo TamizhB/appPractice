@@ -11,7 +11,7 @@ import (
 
 const (
 	// need to push to env variables
-	pgHost      = "localhost"
+	pgHost      = "postgres-service.default.svc.cluster.local"
 	pgPort      = "15432"
 	pgDB        = "devices"
 	servicePort = ":8082"
