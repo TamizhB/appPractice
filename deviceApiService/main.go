@@ -7,12 +7,13 @@ import (
 	"proj.com/apisvc/api/clients"
 	"proj.com/apisvc/api/handlers"
 	"proj.com/apisvc/db"
+	"proj.com/apisvc/messageHandlers"
 )
 
 const (
 	// need to push to env variables
 	pgHost      = "postgres-service.default.svc.cluster.local"
-	pgPort      = "15432"
+	pgPort      = "5432"
 	pgDB        = "devices"
 	servicePort = ":8082"
 )
@@ -47,6 +48,11 @@ func main() {
 	config.POST("/apply/:profile_name", configApis.ApplyProfile)
 
 	server := &http.Server{Addr: servicePort, Handler: router}
+
+	messageHandlers.CreateTopic()
+	msg := base.Group("msgTest")
+	msg.POST("/send", messageHandlers.Send)
+	msg.GET("/receive", messageHandlers.Receive)
 
 	if err := server.ListenAndServe(); err != nil {
 		panic(err)

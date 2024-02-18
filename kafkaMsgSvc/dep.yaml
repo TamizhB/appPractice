@@ -1,0 +1,20 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: kafka-svc-deployment
+spec:
+  replicas: 1  # Adjust as needed
+  selector:
+    matchLabels:
+      app: kafka-svc
+  template:
+    metadata:
+      labels:
+        app: kafka-svc
+    spec:
+      containers:
+      - name: kafka-svc-container
+        image: registry:5000/kafka-svc:v1
+        ports:
+        - containerPort: 9099
+        imagePullPolicy: IfNotPresent

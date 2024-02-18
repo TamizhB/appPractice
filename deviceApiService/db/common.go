@@ -8,7 +8,7 @@ import (
 )
 
 func CreateDb(host string, dbName string) {
-	dsn := fmt.Sprintf("host=%s port=15432 user=%s password=%s", host, "postgres", "admin")
+	dsn := fmt.Sprintf("host=%s port=5432 user=%s password=%s", host, "postgres", "admin")
 	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
 	if err != nil {
 		panic(err)
