@@ -49,7 +49,6 @@ func main() {
 
 	server := &http.Server{Addr: servicePort, Handler: router}
 
-	messageHandlers.CreateTopic()
 	msg := base.Group("msgTest")
 	msg.POST("/send", messageHandlers.Send)
 	msg.GET("/receive", messageHandlers.Receive)

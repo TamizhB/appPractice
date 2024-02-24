@@ -2,6 +2,8 @@ package messageHandlers
 
 import (
 	"log"
+	"os"
+	"os/signal"
 
 	"github.com/IBM/sarama"
 	"github.com/gin-gonic/gin"
@@ -46,17 +48,22 @@ func Receive(ctx *gin.Context) {
 		}
 	}()
 
-	// Handle received messages
-	for {
-		select {
-		case message := <-partitionConsumer.Messages():
-			log.Printf("Received message: %s\n", string(message.Value))
-			//defer consumer.Close()
-		case err := <-partitionConsumer.Errors():
-			log.Printf("Error receiving message: %v", err)
-		case <-ctx.Done():
-			log.Println("Consumer stopped")
-			return
+	// Handle incoming messages in a separate goroutine
+	go func() {
+		for {
+			select {
+			case msg := <-partitionConsumer.Messages():
+				log.Printf("Received message from topic %s: %s\n", msg.Topic, string(msg.Value))
+			case err := <-partitionConsumer.Errors():
+				log.Printf("Error: %v\n", err)
+			}
 		}
-	}
+	}()
+
+	// Wait for a signal to gracefully shut down the consumer
+	sigchan := make(chan os.Signal, 1)
+	signal.Notify(sigchan, os.Interrupt)
+	<-sigchan
+
+	log.Println("Closing Kafka consumer...")
 }

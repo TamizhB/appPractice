@@ -1,0 +1,20 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: udp-svc-deployment
+spec:
+  replicas: 1  # Adjust as needed
+  selector:
+    matchLabels:
+      app: udp-svc
+  template:
+    metadata:
+      labels:
+        app: udp-svc
+    spec:
+      containers:
+      - name: udp-svc-container
+        image: registry:5000/udp-svc:v1
+        ports:
+        - containerPort: 3000
+        imagePullPolicy: IfNotPresent
