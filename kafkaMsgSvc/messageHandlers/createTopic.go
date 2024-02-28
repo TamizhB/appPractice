@@ -8,7 +8,7 @@ import (
 )
 
 // CreateTopic ex
-func CreateTopic() {
+func CreateTopic(topicName string) {
 	// Configure the Kafka producer
 	config := sarama.NewConfig()
 	config.Net.SASL.Enable = true
@@ -49,10 +49,10 @@ func CreateTopic() {
 		}
 	}()
 
-	if exists, err := topicExists(brokerAddresses, config, "my-topic"); err != nil {
+	if exists, err := topicExists(brokerAddresses, config, topicName); err != nil {
 		log.Fatalf("Error checking topic existence: %v", err)
 	} else if !exists {
-		err = admin.CreateTopic("my-topic", topicDetail, false)
+		err = admin.CreateTopic(topicName, topicDetail, false)
 		if err != nil {
 			log.Fatal("Error creating Kafka topic:", err)
 		}

@@ -4,7 +4,11 @@ import (
 	"bytes"
 	"encoding/binary"
 	"fmt"
+	"io"
+	"log"
 	"net"
+	"net/http"
+	"strings"
 	"time"
 )
 
@@ -73,9 +77,33 @@ func Serve() {
 		fmt.Printf("Server Received %d bytes from %s:", n, addr)
 		HandleMessage(buffer[:n])
 		response := []byte("Configuration successful!")
+		pushResponse("configResponse", "Configuration successful!")
 		_, err = conn.WriteToUDP(response, addr)
 		if err != nil {
 			fmt.Println("Error sending response:", err)
 		}
 	}
+}
+
+// pushResponse
+func pushResponse(topic string, payload string) {
+	//kafkaService := "kafka-service.default.svc.cluster.local:9099"
+	client := &http.Client{}
+	req, err := http.NewRequest("POST", fmt.Sprintf("http://kafka-service.default.svc.cluster.local:9099/kafkasvc/msg/send"), strings.NewReader(payload))
+	if err != nil {
+		fmt.Println("Error creating HTTP request:", err)
+	}
+
+	req.Header.Set("message-topic", topic)
+	// Make the HTTP request
+	resp, err := client.Do(req)
+	if err != nil {
+		log.Println("Error making HTTP request:", err)
+	}
+	defer resp.Body.Close()
+	_, err = io.ReadAll(resp.Body)
+	if err != nil {
+		log.Println("Error reading response body:", err)
+	}
+	log.Println("Response pushed to kafka successfully")
 }

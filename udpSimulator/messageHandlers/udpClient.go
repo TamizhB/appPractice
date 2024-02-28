@@ -5,7 +5,9 @@ import (
 	"encoding/binary"
 	"encoding/json"
 	"fmt"
+	"io"
 	"net"
+	"net/http"
 
 	"github.com/gin-gonic/gin"
 )
@@ -39,19 +41,14 @@ func SendMessage(ctx *gin.Context) {
 	defer conn.Close()
 	fmt.Println("Sending message")
 
-	jsonData := `{
-		"MessageType": 1, 
-		"ActualCommand": 1,
-		"SenderID": 1234,
-		"ReceiverID": 5678,
-		"MsgID": 9876,
-		"SequenceNumber": 123,
-		"TimestampSender": 1647029432000000000,
-		"Payload": "test"
-	}`
+	reqBody, err := io.ReadAll(ctx.Request.Body)
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "Error reading request body"})
+		return
+	}
 
 	var message Message
-	err = json.Unmarshal([]byte(jsonData), &message)
+	err = json.Unmarshal(reqBody, &message)
 	if err != nil {
 		fmt.Println("Error unmarshalling JSON:", err)
 		return
@@ -87,5 +84,10 @@ func SendMessage(ctx *gin.Context) {
 		fmt.Println("Error receiving data:", err)
 		return
 	}
-	fmt.Printf("Received - %s\n", string(responseBuffer[:n]))
+
+	if err != nil {
+		ctx.JSON(500, err.Error())
+		return
+	}
+	ctx.JSON(200, string(responseBuffer[:n]))
 }

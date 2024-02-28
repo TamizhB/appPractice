@@ -8,6 +8,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"proj.com/apisvc/api/clients"
+	"proj.com/apisvc/messageHandlers"
 	"proj.com/apisvc/parsers"
 )
 
@@ -89,4 +90,37 @@ func (h *ConfigurationsHandler) UploadProfileData(ctx *gin.Context) {
 
 func (h *ConfigurationsHandler) ApplyProfile(ctx *gin.Context) {
 	fmt.Printf("TBD")
+}
+
+func (h *ConfigurationsHandler) ApplyConfig(ctx *gin.Context) {
+	body, err := io.ReadAll(ctx.Request.Body)
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "Error reading request body"})
+		return
+	}
+
+	jsonPayload := string(body)
+	fmt.Println("Request:", jsonPayload)
+	respStatus, respBody, err := messageHandlers.Send("configRequest", jsonPayload)
+	fmt.Println("Status:", respStatus)
+	fmt.Println("Message:", respBody)
+
+	if err != nil {
+		ctx.JSON(respStatus, err.Error())
+		return
+	}
+
+	ctx.JSON(respStatus, respBody)
+}
+
+// Message struct definition
+type Message struct {
+	MessageType     int    `json:"MessageType"`
+	ActualCommand   int    `json:"ActualCommand"`
+	SenderID        uint32 `json:"SenderID"`
+	ReceiverID      uint32 `json:"ReceiverID"`
+	MsgID           uint32 `json:"MsgID"`
+	SequenceNumber  uint32 `json:"SequenceNumber"`
+	TimestampSender int64  `json:"TimestampSender"`
+	Payload         string `json:"Payload"`
 }

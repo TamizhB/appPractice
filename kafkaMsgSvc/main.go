@@ -12,25 +12,20 @@ const (
 )
 
 func main() {
-
-	// //ctx := context.Background()
-	// brokerAddresses := []string{"kafka.default.svc.cluster.local:9092"}
-
-	// config := sarama.NewConfig()
-	// config.Net.SASL.Enable = true
-	// config.Net.SASL.User = "user1"
-	// config.Net.SASL.Password = "G8wOkt9OZc" // Replace with the actual password
-	// config.Producer.Return.Successes = true
-
 	router := gin.New()
-	base := router.Group("/api/v1/device")
+	base := router.Group("/kafkasvc")
 
 	server := &http.Server{Addr: servicePort, Handler: router}
 
-	messageHandlers.CreateTopic()
-	msg := base.Group("msgTest")
+	// create default topic
+	messageHandlers.CreateTopic("configRequest")
+	messageHandlers.CreateTopic("configResponse")
+
+	go messageHandlers.ConsumeAll()
+
+	msg := base.Group("msg")
 	msg.POST("/send", messageHandlers.Send)
-	msg.GET("/receive", messageHandlers.Receive)
+	//msg.GET("/receive", messageHandlers.Receive)
 
 	if err := server.ListenAndServe(); err != nil {
 		panic(err)

@@ -4,26 +4,23 @@ import (
 	"log"
 	"os"
 	"os/signal"
+	"time"
 
 	"github.com/IBM/sarama"
-	"github.com/gin-gonic/gin"
 )
 
-// Receive test
-func Receive(ctx *gin.Context) {
-	log.Printf("Receiving message")
+// ConsumeAll
+func ConsumeAll() {
+	log.Printf("Kafka consumer started to receive messages...")
 
-	// Define the Kafka broker addresses
 	brokerAddresses := []string{"kafka.default.svc.cluster.local:9092"}
 
-	// Configure the Kafka consumer
 	config := sarama.NewConfig()
 	config.Net.SASL.Enable = true
 	config.Net.SASL.User = "user1"
 	config.Net.SASL.Password = "G8wOkt9OZc" // Replace with the actual password
 	config.Producer.Return.Successes = true
 
-	// Create a new Kafka consumer
 	consumer, err := sarama.NewConsumer(brokerAddresses, config)
 	if err != nil {
 		log.Fatalf("Error creating Kafka consumer: %v", err)
@@ -34,31 +31,36 @@ func Receive(ctx *gin.Context) {
 		}
 	}()
 
-	// Define the Kafka topic
-	topic := "my-topic"
-
-	// Subscribe to the topic
-	partitionConsumer, err := consumer.ConsumePartition(topic, 0, sarama.OffsetNewest)
+	topics, err := consumer.Topics()
 	if err != nil {
-		log.Fatalf("Error subscribing to Kafka topic: %v", err)
+		log.Fatalf("Error getting list of topics: %v", err)
 	}
-	defer func() {
-		if err := partitionConsumer.Close(); err != nil {
-			log.Fatalf("Error closing Kafka partition consumer: %v", err)
-		}
-	}()
 
-	// Handle incoming messages in a separate goroutine
-	go func() {
-		for {
-			select {
-			case msg := <-partitionConsumer.Messages():
-				log.Printf("Received message from topic %s: %s\n", msg.Topic, string(msg.Value))
-			case err := <-partitionConsumer.Errors():
-				log.Printf("Error: %v\n", err)
-			}
+	// Subscribe to all topics
+	for _, topic := range topics {
+		partitionConsumer, err := consumer.ConsumePartition(topic, 0, sarama.OffsetNewest)
+		if err != nil {
+			log.Printf("Error subscribing to Kafka topic %s: %v", topic, err)
+			continue
 		}
-	}()
+		defer func() {
+			if err := partitionConsumer.Close(); err != nil {
+				log.Printf("Error closing Kafka partition consumer for topic %s: %v", topic, err)
+			}
+		}()
+
+		// Handle incoming messages in a separate goroutine
+		go func(topic string) {
+			for {
+				select {
+				case msg := <-partitionConsumer.Messages():
+					HandleMessage(msg)
+				case err := <-partitionConsumer.Errors():
+					log.Printf("Error on topic %s: %v\n", topic, err)
+				}
+			}
+		}(topic)
+	}
 
 	// Wait for a signal to gracefully shut down the consumer
 	sigchan := make(chan os.Signal, 1)
@@ -66,4 +68,13 @@ func Receive(ctx *gin.Context) {
 	<-sigchan
 
 	log.Println("Closing Kafka consumer...")
+}
+
+func HandleMessage(msg *sarama.ConsumerMessage) {
+	if "configRequest" == msg.Topic {
+		log.Printf("Received config request %s at %v.. Action:To be logged\n", string(msg.Value), time.Now())
+	}
+	if "configResponse" == msg.Topic {
+		log.Printf("Received config response from device %s at %v.. Action:To be logged\n", string(msg.Value), time.Now())
+	}
 }

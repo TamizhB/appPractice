@@ -7,7 +7,6 @@ import (
 	"proj.com/apisvc/api/clients"
 	"proj.com/apisvc/api/handlers"
 	"proj.com/apisvc/db"
-	"proj.com/apisvc/messageHandlers"
 )
 
 const (
@@ -46,12 +45,9 @@ func main() {
 	config.DELETE("/:profile_name", configApis.DeleteProfile)
 	config.POST("/upload", configApis.UploadProfileData)
 	config.POST("/apply/:profile_name", configApis.ApplyProfile)
+	config.POST("/apply", configApis.ApplyConfig)
 
 	server := &http.Server{Addr: servicePort, Handler: router}
-
-	msg := base.Group("msgTest")
-	msg.POST("/send", messageHandlers.Send)
-	msg.GET("/receive", messageHandlers.Receive)
 
 	if err := server.ListenAndServe(); err != nil {
 		panic(err)
