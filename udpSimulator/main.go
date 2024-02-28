@@ -3,11 +3,14 @@ package main
 import (
 	"context"
 	"fmt"
+	"log"
 	"net/http"
 	"strings"
 
 	"github.com/gin-gonic/gin"
+	tracesdk "go.opentelemetry.io/otel/sdk/trace"
 	"proj.com/udp/messageHandlers"
+	"proj.com/udp/tracing"
 )
 
 const (
@@ -15,6 +18,8 @@ const (
 	messageCount = 10
 	servicePort  = ":3000"
 )
+
+var traceProvider *tracesdk.TracerProvider
 
 func main() {
 	go messageHandlers.Serve()
@@ -33,11 +38,11 @@ func main() {
 
 func initTracing() {
 	// init tracing
-	jaegerEndpoint := fmt.Sprintf("%s%s", strings.TrimRight(envConfig.JaegerAPIEndpoint, "/"), "/api/traces")
+	jaegerEndpoint := fmt.Sprintf("%s%s", strings.TrimRight("http://simplest-collector.default.svc.cluster.local:14268", "/"), "/api/traces")
 	var err error
-	traceProvider, err = tracing.TracerProvider(1, jaegerEndpoint, "mw-api-svc", "dev")
 	ctx := context.Background()
+	traceProvider, err = tracing.TracerProvider(ctx, 1, jaegerEndpoint, "udp-svc", "dev")
 	if err != nil {
-		logger.Log.Warn(ctx, "unable to start tracing")
+		log.Println("unable to start tracing")
 	}
 }

@@ -2,6 +2,7 @@ package messageHandlers
 
 import (
 	"bytes"
+	"context"
 	"encoding/binary"
 	"encoding/json"
 	"fmt"
@@ -10,6 +11,7 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+	"go.opentelemetry.io/otel"
 )
 
 // Message struct definition
@@ -26,6 +28,11 @@ type Message struct {
 
 // SendMessage
 func SendMessage(ctx *gin.Context) {
+	tr := otel.Tracer("udp-service")
+	ctx1 := context.Background()
+	ctx1, span := tr.Start(ctx1, "udp-svc")
+	defer span.End()
+
 	serverAddr, err := net.ResolveUDPAddr("udp", "127.0.0.1:8888")
 	if err != nil {
 		fmt.Println("Error resolving address:", err)
