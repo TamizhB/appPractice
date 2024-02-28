@@ -1,12 +1,14 @@
 package handlers
 
 import (
+	"context"
 	"fmt"
 	"io"
 	"net/http"
 	"os"
 
 	"github.com/gin-gonic/gin"
+	"go.opentelemetry.io/otel"
 	"proj.com/apisvc/api/clients"
 	"proj.com/apisvc/messageHandlers"
 	"proj.com/apisvc/parsers"
@@ -93,6 +95,10 @@ func (h *ConfigurationsHandler) ApplyProfile(ctx *gin.Context) {
 }
 
 func (h *ConfigurationsHandler) ApplyConfig(ctx *gin.Context) {
+	tr := otel.Tracer("api-service")
+	ctx1 := context.Background()
+	ctx1, span := tr.Start(ctx1, "api-svc")
+	defer span.End()
 	body, err := io.ReadAll(ctx.Request.Body)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "Error reading request body"})

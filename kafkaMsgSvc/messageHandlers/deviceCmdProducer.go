@@ -1,6 +1,7 @@
 package messageHandlers
 
 import (
+	"context"
 	"fmt"
 	"io"
 	"log"
@@ -9,10 +10,15 @@ import (
 
 	"github.com/IBM/sarama"
 	"github.com/gin-gonic/gin"
+	"go.opentelemetry.io/otel"
 )
 
 // Send test
 func Send(ctx *gin.Context) {
+	tr := otel.Tracer("udp-service")
+	ctx1 := context.Background()
+	ctx1, span := tr.Start(ctx1, "udp-svc")
+	defer span.End()
 	log.Printf("Sending message")
 
 	reqBody, err := io.ReadAll(ctx.Request.Body)

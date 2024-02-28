@@ -1,12 +1,18 @@
 package main
 
 import (
+	"context"
+	"fmt"
+	"log"
 	"net/http"
+	"strings"
 
 	"github.com/gin-gonic/gin"
+	tracesdk "go.opentelemetry.io/otel/sdk/trace"
 	"proj.com/apisvc/api/clients"
 	"proj.com/apisvc/api/handlers"
 	"proj.com/apisvc/db"
+	"proj.com/apisvc/tracing"
 )
 
 const (
@@ -16,6 +22,8 @@ const (
 	pgDB        = "devices"
 	servicePort = ":8082"
 )
+
+var traceProvider *tracesdk.TracerProvider
 
 func main() {
 
@@ -51,5 +59,16 @@ func main() {
 
 	if err := server.ListenAndServe(); err != nil {
 		panic(err)
+	}
+}
+
+func initTracing() {
+	// init tracing
+	jaegerEndpoint := fmt.Sprintf("%s%s", strings.TrimRight("http://simplest-collector.default.svc.cluster.local:14268", "/"), "/api/traces")
+	var err error
+	ctx := context.Background()
+	traceProvider, err = tracing.TracerProvider(ctx, 1, jaegerEndpoint, "api-svc", "dev")
+	if err != nil {
+		log.Println("unable to start tracing")
 	}
 }
