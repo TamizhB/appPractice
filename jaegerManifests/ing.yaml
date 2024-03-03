@@ -1,0 +1,19 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  labels:
+    app: jaeger
+  name: simplest-query
+  namespace: default
+  uid: f50ff6b7-96f5-435c-90cf-21d73dd65948
+  ownerReferences:
+  - apiVersion: jaegertracing.io/v1
+    controller: true
+    kind: Jaeger
+    name: simplest
+spec:
+  defaultBackend:
+    service:
+      name: simplest-query
+      port:
+        number: 16686
